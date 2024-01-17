@@ -29,6 +29,26 @@ pipeline {
                  sh "mvn test"
            }
        }
+         stage('Sonarqube') {
+            steps {
+                withSonarQubeEnv('onar-server'){
+                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=register \
+                   -Dsonar.java.binaries=. \
+                   -Dsonar.projectKey=register '''
+               }
+            }
+        }
+        stage('build and push docker images') {
+            steps {
+               script{
+                   withDockerRegistry(credentialsId: 'dockerhub') {
+                       sh "docker build -t register ."
+                       sh "docker tag petstore santoshbd67/register:latest"
+                       sh "docker push santoshbd67/register:latest"
+                 }
+               }
+            }
+        }
       }      
    }
 
